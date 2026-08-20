@@ -89,23 +89,14 @@ SmartQueue is an intelligent distributed background job scheduling platform desi
 
 ## Configuration & Environment Variables
 
-Create a `.env` file at the root of the workspace. A template is provided in `.env.example`:
+Create a `.env` file at the root of the workspace. A template is provided in `.env.example` containing empty placeholders. For local development, copy `.env.example` to `.env` and fill in the values:
 
-```ini
-# Database Connection URL (Postgres)
-DATABASE_URL=postgresql://postgres:postgres@localhost:5432/smartqueue
-
-# Redis Connection URL
-REDIS_URL=redis://localhost:6379/0
-
-# Security (JWT token signing details)
-SECRET_KEY=09d25e094faa6ca2556c818166b7a9563b93f7099f6f0f4caa6cf63b88e8d3e7
-ALGORITHM=HS256
-ACCESS_TOKEN_EXPIRE_MINUTES=1440
-
-# AI Diagnostics (Gemini API access)
-GEMINI_API_KEY=your_gemini_api_key_here
-```
+- `DATABASE_URL`: Connection string for PostgreSQL database (e.g. `postgresql://postgres:password@localhost:5432/smartqueue`).
+- `REDIS_URL`: Connection URL for Redis instances (e.g. `redis://localhost:6379/0`).
+- `JWT_SECRET`: Random 256-bit string to encrypt JWT session tokens.
+- `GEMINI_API_KEY`: Google Gemini Flash API Key (for intelligent SRE failure classification).
+- `CORS_ORIGINS`: Comma-separated list of origins allowed by CORS (e.g. your Vercel frontend URL).
+- `VITE_API_URL`: Frontend API URL pointing to the deployed backend (e.g. `http://localhost:8000`).
 
 ---
 
@@ -279,3 +270,36 @@ On task failure, execution telemetry is gathered.
   "analyzed_at": "2026-08-19T20:45:00"
 }
 ```
+
+---
+
+## Production Deployment
+
+This project is prepared for single-click blueprint deployment to Render and Vercel.
+
+### 1. Backend, Worker, Database, and Redis (Render)
+A [`render.yaml`](file:///c:/Users/HEMA%20NITHYA/Desktop/jobschedular/render.yaml) configuration is provided in the workspace root.
+1. Connect your GitHub repository to **Render**.
+2. Click **Blueprints** -> **New Blueprint Instance**.
+3. Select this repository.
+4. Render will automatically provision:
+   - **PostgreSQL Database** (`smartqueue-db`)
+   - **Redis Cache/Broker** (`smartqueue-redis`)
+   - **FastAPI REST API Service** (`smartqueue-backend`)
+   - **Background Worker Process** (`smartqueue-worker`)
+5. Configure `GEMINI_API_KEY` on Render's dashboard for the backend and worker if desired.
+
+### 2. Frontend React Dashboard (Vercel)
+1. Import the `frontend/` directory into **Vercel**.
+2. Set the environment variable:
+   - `VITE_API_URL`: Point this to your deployed Render backend web service URL (e.g. `https://smartqueue-backend.onrender.com`).
+3. Set the build command to `npm run build` and output directory to `dist`.
+4. Deploy the application.
+5. In your Render backend env vars, update `CORS_ORIGINS` to match your newly deployed Vercel frontend URL to secure the endpoints.
+
+---
+
+## Screenshots
+
+*(Screenshots of the live React dashboard, jobs explorer, Dead Letter Queue diagnostics, and workflow dependencies can be added here.)*
+
