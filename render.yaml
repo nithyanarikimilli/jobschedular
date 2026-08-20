@@ -1,0 +1,55 @@
+services:
+  # 1. Backend REST API
+  - type: web
+    name: smartqueue-backend
+    runtime: python
+    buildCommand: pip install -r requirements.txt
+    startCommand: uvicorn app.main:app --host 0.0.0.0 --port $PORT
+    envVars:
+      - key: DATABASE_URL
+        fromDatabase:
+          name: smartqueue-db
+          property: connectionString
+      - key: REDIS_URL
+        fromService:
+          type: redis
+          name: smartqueue-redis
+          property: connectionString
+      - key: JWT_SECRET
+        generateValue: true
+      - key: GEMINI_API_KEY
+        sync: false # User can set this in Render Dashboard
+      - key: CORS_ORIGINS
+        value: "*" # Restricted to allowed frontend domain after Vercel deployment
+    rootDir: backend
+
+  # 2. Background worker
+  - type: worker
+    name: smartqueue-worker
+    runtime: python
+    buildCommand: pip install -r requirements.txt
+    startCommand: python -m workers.worker
+    envVars:
+      - key: DATABASE_URL
+        fromDatabase:
+          name: smartqueue-db
+          property: connectionString
+      - key: REDIS_URL
+        fromService:
+          type: redis
+          name: smartqueue-redis
+          property: connectionString
+      - key: GEMINI_API_KEY
+        sync: false
+    rootDir: backend
+
+  # 3. Redis Instance
+  - type: redis
+    name: smartqueue-redis
+    plan: free
+    ipAllowList: [] # Accessible only by services in this Render account
+
+# 4. PostgreSQL Database
+databases:
+  - name: smartqueue-db
+    plan: free
