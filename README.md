@@ -273,40 +273,67 @@ On task failure, execution telemetry is gathered.
 
 ---
 
-## Live Demo & Repository Link
+## Live Demo
 
-- **Live Demo Frontend**: [LIVE_DEMO_URL](LIVE_DEMO_URL)
-- **Backend API Base**: [BACKEND_API_URL](BACKEND_API_URL)
-- **Interactive Swagger Documentation**: [BACKEND_API_URL/docs](BACKEND_API_URL/docs)
-- **ReDoc Interactive Documentation**: [BACKEND_API_URL/redoc](BACKEND_API_URL/redoc)
-- **GitHub Repository**: [GITHUB_REPOSITORY_URL](GITHUB_REPOSITORY_URL)
-
----
-
-## Production Deployment (Unified Render Blueprint)
-
-This project is prepared for a unified, single-click deployment using Render's Blueprint feature. The entire full-stack system is declared inside [`render.yaml`](file:///c:/Users/HEMA%20NITHYA/Desktop/jobschedular/render.yaml) in the repository root.
-
-### Provisioned Services
-When the blueprint is deployed, Render automatically spins up:
-1. **PostgreSQL Database** (`smartqueue-db`): A relational store managing jobs, schema index locks, and execution logs.
-2. **Redis Cache** (`smartqueue-redis`): Used for node coordinator checks, pub/sub sync, and api health verification.
-3. **FastAPI Web Service** (`smartqueue-backend`): The REST API gateway serving dashboard telemetry, authentication endpoints, and swagger documentation.
-4. **Background Worker** (`smartqueue-worker`): The daemon worker process polling the database for claiming jobs and running scheduler sweeps.
-5. **Static Site Frontend** (`smartqueue-frontend`): The React/Vite web application built and hosted directly as a Render static site.
-
-### Deployment Instructions
-1. Commit all project code and push it to your GitHub repository.
-2. Log into the **Render Dashboard** and navigate to **Blueprints**.
-3. Click **New Blueprint Instance** and connect your GitHub repository.
-4. Render will parse [`render.yaml`](file:///c:/Users/HEMA%20NITHYA/Desktop/jobschedular/render.yaml) and present you with the service list.
-5. Provide your values for the environment parameters (e.g. `GEMINI_API_KEY`, custom `JWT_SECRET` keys, or `CORS_ORIGINS`).
-6. Click **Approve** and let Render build and release all services automatically.
-7. Once deployed, find the static site URL under your `smartqueue-frontend` dashboard page, and update the backend's `CORS_ORIGINS` to point to it.
+* **Frontend Dashboard**: https://nithyanarikimilli.github.io/jobschedular/
+* **Backend REST API**: PENDING_DEPLOYMENT_URL
+* **API Documentation**: PENDING_DEPLOYMENT_URL/docs
+* **Health Check**: PENDING_DEPLOYMENT_URL/health
 
 ---
 
-## Screenshots
+## Deployment Architecture
 
-*(Screenshots of the live React dashboard, jobs explorer, Dead Letter Queue diagnostics, and workflow dependencies can be added here.)*
+The application is structured as a full-stack, distributed scheduler deployed completely on free-tier services:
+
+```
+        User Browser
+             |
+             v (HTTPS / React UI)
+     GitHub Pages Frontend
+             |
+             | HTTPS REST API Calls
+             v
+      Render Web Service (FastAPI Backend)
+             |
+             +---> Neon Cloud PostgreSQL (Persistence / Atomic Claiming via SKIP LOCKED)
+             |
+             +---> Upstash Serverless Redis (Coordination / Heartbeats / Queue Locks)
+             |
+             +---> Background Job Execution (Embedded threads running WorkerRunner & SchedulerDaemon)
+             |
+             +---> Google Gemini API (AI Crash Diagnostics / Fallback Regex SRE)
+```
+
+1. **GitHub Pages**: Hosts the static React+Vite SPA dashboard.
+2. **Render Web Service**: Runs the FastAPI application. To comply with Render's free tier (no credit card required), the background worker and scheduler daemon run in lightweight threads inside this same instance (enabled by default).
+3. **Neon PostgreSQL**: Free cloud database serving as the transaction-safe source of truth.
+4. **Upstash Redis**: Serverless Redis handling distributed locking and queue coordination.
+5. **Gemini API**: Performs intelligent crash classification on task failures.
+
+---
+
+## Production Deployment Steps
+
+### 1. Database Provisioning
+* **Neon PostgreSQL**: Create a database at [neon.tech](https://neon.tech) and copy the connection string.
+* **Upstash Redis**: Create a Redis store at [upstash.com](https://upstash.com) and copy the `REDIS_URL` connection URL.
+
+### 2. Backend Deployment on Render (100% Free)
+1. Go to your **Render Dashboard** → **Blueprints** → **New Blueprint Instance**.
+2. Connect your GitHub repository `nithyanarikimilli/jobschedular`.
+3. Provide the required environment variables:
+   * `DATABASE_URL`: The Neon PostgreSQL connection string.
+   * `REDIS_URL`: The Upstash Redis URL.
+   * `CORS_ORIGINS`: `https://nithyanarikimilli.github.io`
+   * `GEMINI_API_KEY`: (Optional) Your Google Gemini API Key.
+4. Deploy the blueprint. Render will automatically launch the web service and start the embedded worker threads.
+
+### 3. Frontend Deployment to GitHub Pages
+1. Go to your GitHub Repository Settings → **Secrets and variables** → **Actions**.
+2. Add a new Repository Secret:
+   * **Name**: `VITE_API_URL`
+   * **Value**: Your Render backend web service URL (e.g. `https://smartqueue-backend.onrender.com`).
+3. Commit and push any changes to `main` branch. The GitHub Actions workflow `.github/workflows/deploy.yml` will automatically build the Vite app with the injected API URL and push the compiled files to the `gh-pages` branch.
+4. Go to Settings → **Pages** → under **Build and deployment**, ensure the Source is set to **Deploy from a branch** and select **`gh-pages`** (root).
 
