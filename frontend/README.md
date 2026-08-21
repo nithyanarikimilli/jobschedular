@@ -131,20 +131,28 @@ The application connects dynamically to the FastAPI backend. It checks `import.m
 
 ---
 
-# Frontend Screenshots
+## Frontend Screenshots
 
 ### 1. Overview Dashboard
 ![SmartQueue Overview](docs/screenshots/overview.png)
-*Shows the main dashboard displaying total jobs, active claimed/running jobs, completed jobs, queue depth, active workers, success rate, system health, and throughput visualization.*
+*Provides a real-time overview of distributed job execution, including total jobs, active jobs, completed jobs, queue depth, active workers, success rate, system health, and throughput.*
 
-### 2. Active Workers
+### 2. Workers
 ![Active Workers](docs/screenshots/workers.png)
-*Shows the queue configuration dashboard displaying health states, running worker limits, queue depths, average runtimes, and pause controls.*
+*Displays the active worker cluster, worker status, CPU utilization, memory allocation, completed jobs, failed jobs, and heartbeat information.*
 
-### 3. Pipeline Workflows
+### 3. Workflows
 ![Pipeline Workflows](docs/screenshots/workflows.png)
-*Shows the manual job dispatch dialog allowing users to define target queues, task registries, priorities, and input payload arguments.*
+*Displays pipeline workflows and their sequential job dependencies.*
 
-### 4. Dead Letter Queue
+### 4. Dead Letter Queue (DLQ)
 ![Dead Letter Queue](docs/screenshots/dead-letter-queue.png)
-*Shows the Job Explorer logs panel displaying job parameters, timestamps, status transitions, and console output logs.*
+*Displays permanently failed jobs after retry limits are exceeded and provides a view for failure analysis and recovery.*
+
+### 5. Queues Configuration
+![Queues Configuration](docs/screenshots/queues.png)
+*Displays queue-related configuration and monitoring information.*
+
+### 6. Job Explorer
+![Job Explorer](docs/screenshots/explorer.png)
+*Provides detailed visibility into individual jobs, including their execution status and related information.*
