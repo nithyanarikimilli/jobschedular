@@ -1,4 +1,12 @@
-let API_BASE = import.meta.env.VITE_API_URL || "http://localhost:8000";
+let API_BASE = import.meta.env.VITE_API_URL;
+if (!API_BASE) {
+  if (import.meta.env.DEV) {
+    API_BASE = "http://localhost:8000";
+  } else {
+    console.error("VITE_API_URL is not defined in production environment!");
+    API_BASE = "";
+  }
+}
 if (API_BASE && !API_BASE.startsWith("http://") && !API_BASE.startsWith("https://")) {
   API_BASE = `https://${API_BASE}`;
 }
