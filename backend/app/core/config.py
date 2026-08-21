@@ -37,5 +37,9 @@ class Settings(BaseSettings):
         # Synchronize SECRET_KEY if JWT_SECRET is explicitly set
         if self.JWT_SECRET != "09d25e094faa6ca2556c818166b7a9563b93f7099f6f0f4caa6cf63b88e8d3e7":
             self.SECRET_KEY = self.JWT_SECRET
+        
+        # Convert postgres:// to postgresql:// for SQLAlchemy 1.4+ / 2.0+ compatibility
+        if self.DATABASE_URL.startswith("postgres://"):
+            self.DATABASE_URL = self.DATABASE_URL.replace("postgres://", "postgresql://", 1)
 
 settings = Settings()

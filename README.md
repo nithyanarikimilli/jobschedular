@@ -273,29 +273,36 @@ On task failure, execution telemetry is gathered.
 
 ---
 
-## Production Deployment
+## Live Demo & Repository Link
 
-This project is prepared for single-click blueprint deployment to Render and Vercel.
+- **Live Demo Frontend**: [LIVE_DEMO_URL](LIVE_DEMO_URL)
+- **Backend API Base**: [BACKEND_API_URL](BACKEND_API_URL)
+- **Interactive Swagger Documentation**: [BACKEND_API_URL/docs](BACKEND_API_URL/docs)
+- **ReDoc Interactive Documentation**: [BACKEND_API_URL/redoc](BACKEND_API_URL/redoc)
+- **GitHub Repository**: [GITHUB_REPOSITORY_URL](GITHUB_REPOSITORY_URL)
 
-### 1. Backend, Worker, Database, and Redis (Render)
-A [`render.yaml`](file:///c:/Users/HEMA%20NITHYA/Desktop/jobschedular/render.yaml) configuration is provided in the workspace root.
-1. Connect your GitHub repository to **Render**.
-2. Click **Blueprints** -> **New Blueprint Instance**.
-3. Select this repository.
-4. Render will automatically provision:
-   - **PostgreSQL Database** (`smartqueue-db`)
-   - **Redis Cache/Broker** (`smartqueue-redis`)
-   - **FastAPI REST API Service** (`smartqueue-backend`)
-   - **Background Worker Process** (`smartqueue-worker`)
-5. Configure `GEMINI_API_KEY` on Render's dashboard for the backend and worker if desired.
+---
 
-### 2. Frontend React Dashboard (Vercel)
-1. Import the `frontend/` directory into **Vercel**.
-2. Set the environment variable:
-   - `VITE_API_URL`: Point this to your deployed Render backend web service URL (e.g. `https://smartqueue-backend.onrender.com`).
-3. Set the build command to `npm run build` and output directory to `dist`.
-4. Deploy the application.
-5. In your Render backend env vars, update `CORS_ORIGINS` to match your newly deployed Vercel frontend URL to secure the endpoints.
+## Production Deployment (Unified Render Blueprint)
+
+This project is prepared for a unified, single-click deployment using Render's Blueprint feature. The entire full-stack system is declared inside [`render.yaml`](file:///c:/Users/HEMA%20NITHYA/Desktop/jobschedular/render.yaml) in the repository root.
+
+### Provisioned Services
+When the blueprint is deployed, Render automatically spins up:
+1. **PostgreSQL Database** (`smartqueue-db`): A relational store managing jobs, schema index locks, and execution logs.
+2. **Redis Cache** (`smartqueue-redis`): Used for node coordinator checks, pub/sub sync, and api health verification.
+3. **FastAPI Web Service** (`smartqueue-backend`): The REST API gateway serving dashboard telemetry, authentication endpoints, and swagger documentation.
+4. **Background Worker** (`smartqueue-worker`): The daemon worker process polling the database for claiming jobs and running scheduler sweeps.
+5. **Static Site Frontend** (`smartqueue-frontend`): The React/Vite web application built and hosted directly as a Render static site.
+
+### Deployment Instructions
+1. Commit all project code and push it to your GitHub repository.
+2. Log into the **Render Dashboard** and navigate to **Blueprints**.
+3. Click **New Blueprint Instance** and connect your GitHub repository.
+4. Render will parse [`render.yaml`](file:///c:/Users/HEMA%20NITHYA/Desktop/jobschedular/render.yaml) and present you with the service list.
+5. Provide your values for the environment parameters (e.g. `GEMINI_API_KEY`, custom `JWT_SECRET` keys, or `CORS_ORIGINS`).
+6. Click **Approve** and let Render build and release all services automatically.
+7. Once deployed, find the static site URL under your `smartqueue-frontend` dashboard page, and update the backend's `CORS_ORIGINS` to point to it.
 
 ---
 

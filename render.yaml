@@ -49,6 +49,19 @@ services:
     plan: free
     ipAllowList: [] # Accessible only by services in this Render account
 
+  # 5. Frontend Static Site
+  - type: static
+    name: smartqueue-frontend
+    buildCommand: npm install && npm run build
+    publishPath: dist
+    rootDir: frontend
+    envVars:
+      - key: VITE_API_URL
+        fromService:
+          type: web
+          name: smartqueue-backend
+          property: host
+
 # 4. PostgreSQL Database
 databases:
   - name: smartqueue-db
