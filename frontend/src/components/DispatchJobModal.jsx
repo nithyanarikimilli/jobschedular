@@ -7,7 +7,6 @@ export default function DispatchJobModal({ project, onClose, addToast }) {
   const [tName, setTName] = useState("task_success");
   const [priority, setPriority] = useState(1);
   const [payloadText, setPayloadText] = useState('{\n  "data": "Sample background job payload data"\n}');
-  const [delaySec, setDelaySec] = useState("");
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
@@ -27,8 +26,7 @@ export default function DispatchJobModal({ project, onClose, addToast }) {
         throw new Error("Invalid payload JSON format.");
       }
 
-      const delayInt = delaySec ? parseInt(delaySec) : null;
-      await api.createJob(project.id, qName, tName, parsedPayload, priority, delayInt);
+      await api.createJob(project.id, qName, tName, parsedPayload, priority, null);
       addToast("Job successfully dispatched to the queue scheduler.");
       onClose();
     } catch (err) {
@@ -73,7 +71,7 @@ export default function DispatchJobModal({ project, onClose, addToast }) {
 
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="block text-xs font-bold text-slate-500 uppercase">Priority level</label>
+              <label className="block text-xs font-bold text-slate-500 uppercase">Priority Level</label>
               <input
                 type="number"
                 min="0"
@@ -82,17 +80,7 @@ export default function DispatchJobModal({ project, onClose, addToast }) {
                 className="mt-1 block w-full bg-slate-950 border border-slate-800 rounded-lg py-2 px-3 text-xs text-white"
               />
             </div>
-            <div>
-              <label className="block text-xs font-bold text-slate-500 uppercase">Scheduling Delay (seconds)</label>
-              <input
-                type="number"
-                min="0"
-                value={delaySec}
-                onChange={(e) => setDelaySec(e.target.value)}
-                placeholder="Leave blank for immediate run"
-                className="mt-1 block w-full bg-slate-950 border border-slate-800 rounded-lg py-2 px-3 text-xs text-white placeholder-slate-650"
-              />
-            </div>
+            <div></div>
           </div>
 
           <div>

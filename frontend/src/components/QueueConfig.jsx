@@ -119,17 +119,17 @@ export default function QueueConfig({ activeProject, addToast, showNewQueueModal
 
                 <div className="grid grid-cols-3 gap-2 mt-4 text-center">
                   <div className="bg-slate-950 p-2 rounded-xl border border-slate-800/40">
-                    <span className="text-[10px] text-slate-500 uppercase tracking-wider block">Running / Limit</span>
+                    <span className="text-[10px] text-slate-500 uppercase tracking-wider block">RUNNING / LIMIT</span>
                     <span className="text-sm font-extrabold text-white">
                       {qStat?.running_jobs ?? 0} / {q.max_concurrency}
                     </span>
                   </div>
                   <div className="bg-slate-950 p-2 rounded-xl border border-slate-800/40">
-                    <span className="text-[10px] text-slate-500 uppercase tracking-wider block">Queue Depth</span>
+                    <span className="text-[10px] text-slate-500 uppercase tracking-wider block">QUEUE DEPTH</span>
                     <span className="text-sm font-extrabold text-white">{qStat?.depth ?? 0}</span>
                   </div>
                   <div className="bg-slate-950 p-2 rounded-xl border border-slate-800/40">
-                    <span className="text-[10px] text-slate-500 uppercase tracking-wider block">Avg Duration</span>
+                    <span className="text-[10px] text-slate-500 uppercase tracking-wider block">AVG DURATION</span>
                     <span className="text-sm font-extrabold text-white">{qStat?.avg_execution_time ?? 0}s</span>
                   </div>
                 </div>
@@ -137,15 +137,15 @@ export default function QueueConfig({ activeProject, addToast, showNewQueueModal
 
               <div className="pt-3 border-t border-slate-800/60 flex justify-between items-center mt-4">
                 <div className="text-[10px] text-slate-500 font-bold uppercase tracking-wider">
-                  Priority level: <span className="text-blue-400">{q.priority}</span>
+                  PRIORITY LEVEL: {q.priority}
                 </div>
 
                 <button
                   onClick={() => handleTogglePause(q)}
-                  className={`flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${
+                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold border transition-all ${
                     q.is_paused
-                      ? "bg-emerald-500/10 text-emerald-400 hover:bg-emerald-500/20"
-                      : "bg-amber-500/10 text-amber-400 hover:bg-amber-500/20"
+                      ? "border-emerald-500/30 text-emerald-400 hover:bg-emerald-500/10"
+                      : "border-amber-500/30 text-amber-500 hover:bg-amber-500/10"
                   }`}
                 >
                   {q.is_paused ? <Play size={12} /> : <Pause size={12} />}
