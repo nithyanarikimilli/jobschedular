@@ -20,17 +20,3 @@ services:
         value: "true"
     rootDir: backend
 
-  # 2. Background worker
-  - type: worker
-    name: smartqueue-worker
-    runtime: python
-    buildCommand: pip install -r requirements.txt
-    startCommand: python -m workers.worker
-    envVars:
-      - key: DATABASE_URL
-        sync: false
-      - key: REDIS_URL
-        sync: false
-      - key: GEMINI_API_KEY
-        sync: false
-    rootDir: backend

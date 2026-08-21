@@ -69,10 +69,20 @@ export default function App() {
   const [authOrg, setAuthOrg] = useState("");
   const [authLoading, setAuthLoading] = useState(false);
 
+  const [backendOnline, setBackendOnline] = useState(true);
+
   // Global State for UI
   const [toasts, setToasts] = useState([]);
   const [summary, setSummary] = useState(null);
   const [pollingActive, setPollingActive] = useState(true);
+
+  useEffect(() => {
+    const handleStatus = (e) => {
+      setBackendOnline(e.detail.online);
+    };
+    window.addEventListener("backend-status", handleStatus);
+    return () => window.removeEventListener("backend-status", handleStatus);
+  }, []);
 
   // Modal / Form States
   const [showNewJobModal, setShowNewJobModal] = useState(false);
@@ -153,6 +163,11 @@ export default function App() {
   if (!isAuthenticated) {
     return (
       <div className="min-h-screen bg-slate-950 flex flex-col justify-center py-12 sm:px-6 lg:px-8 bg-radial-gradient text-slate-100">
+        {!backendOnline && (
+          <div className="fixed top-0 left-0 right-0 bg-red-950/90 border-b border-red-500 text-red-200 text-center py-2.5 px-4 text-xs font-semibold z-50 flex items-center justify-center gap-2 backdrop-blur-md">
+             <span>⚠️ Connection Lost: Backend API is currently unreachable. Make sure the backend server is running and CORS is configured.</span>
+          </div>
+        )}
         <div className="sm:mx-auto sm:w-full sm:max-w-md text-center">
           <div className="inline-flex items-center justify-center p-3 bg-blue-600/10 border border-blue-500/20 rounded-2xl mb-4">
             <Layers className="h-10 w-10 text-blue-500 animate-pulse" />
@@ -264,7 +279,13 @@ export default function App() {
   }
 
   return (
-    <div className="min-h-screen bg-[#070b13] flex text-slate-200">
+    <div className="min-h-screen bg-[#070b13] flex text-slate-200 flex-col">
+      {!backendOnline && (
+        <div className="w-full bg-red-950/90 border-b border-red-500 text-red-200 text-center py-2.5 px-4 text-xs font-semibold z-50 flex items-center justify-center gap-2 backdrop-blur-md">
+           <span>⚠️ Connection Lost: Backend API is currently unreachable. Make sure the backend server is running.</span>
+        </div>
+      )}
+      <div className="flex flex-1">
       {/* Sidebar Navigation */}
       <aside className="w-64 bg-[#0a0f1d] border-r border-slate-900 flex flex-col justify-between p-4">
         <div>
@@ -1498,6 +1519,7 @@ function DLQTab({ addToast }) {
           )}
         </div>
       </div>
+    </div>
     </div>
   );
 }
