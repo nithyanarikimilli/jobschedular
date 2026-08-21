@@ -73,7 +73,36 @@ async def lifespan(app: FastAPI):
         logger.critical(f"Error details: {e}")
         logger.critical("==================================================")
         sys.exit(1)
+
+    # Start background worker inside web process if configured
+    worker = None
+    stop_event = None
+    daemon_thread = None
+    import os
+    if os.getenv("START_WORKER_IN_WEB", "false").lower() == "true":
+        logger.info("Starting background worker and scheduler daemon inside web process...")
+        from app.services.scheduler import WorkerRunner, run_scheduler_daemon
+        import threading
+        
+        stop_event = threading.Event()
+        daemon_thread = threading.Thread(target=run_scheduler_daemon, args=(stop_event,), daemon=True)
+        daemon_thread.start()
+        
+        worker = WorkerRunner(name="Web-Embedded-Worker")
+        worker.start()
+        logger.info("Web-embedded worker and scheduler daemon started.")
+
     yield
+
+    # Shutdown background worker
+    if worker:
+        logger.info("Shutting down web-embedded worker...")
+        worker.stop()
+        if stop_event:
+            stop_event.set()
+        if daemon_thread:
+            daemon_thread.join(timeout=2)
+        logger.info("Web-embedded worker shut down.")
 
 app = FastAPI(
     title="SmartQueue REST API",
@@ -185,7 +214,7 @@ from sqlalchemy import text
 
 @app.get("/health")
 def health():
-    return {"status": "healthy"}
+    return {"status": "ok"}
 
 @app.get("/health/system")
 def system_health(db: Session = Depends(get_db)):
