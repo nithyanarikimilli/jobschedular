@@ -21,43 +21,59 @@ function getHeaders() {
 
 async function request(endpoint, options = {}) {
   const url = `${API_BASE}${endpoint}`;
-  const response = await fetch(url, {
-    ...options,
-    headers: {
-      ...getHeaders(),
-      ...options.headers,
-    },
-  });
+  try {
+    const response = await fetch(url, {
+      ...options,
+      headers: {
+        ...getHeaders(),
+        ...options.headers,
+      },
+    });
 
-  if (response.status === 401) {
-    localStorage.removeItem("token");
-    window.location.reload();
+    if (response.status === 401) {
+      localStorage.removeItem("token");
+      window.location.reload();
+    }
+
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}));
+      throw new Error(errorData.detail || "Request failed");
+    }
+
+    window.dispatchEvent(new CustomEvent("backend-status", { detail: { online: true } }));
+    return response.json();
+  } catch (err) {
+    if (err.message && (err.message.includes("Failed to fetch") || err.message.includes("NetworkError") || err.message.includes("Load failed") || err.message.includes("Failed to execute 'fetch'"))) {
+      window.dispatchEvent(new CustomEvent("backend-status", { detail: { online: false } }));
+    }
+    throw err;
   }
-
-  if (!response.ok) {
-    const errorData = await response.json().catch(() => ({}));
-    throw new Error(errorData.detail || "Request failed");
-  }
-
-  return response.json();
 }
 
 export const api = {
   async login(email, password) {
-    const response = await fetch(`${API_BASE}/auth/login`, {
-      method: "POST",
-      headers: { "Content-Type": "application/x-www-form-urlencoded" },
-      body: new URLSearchParams({ username: email, password }),
-    });
+    try {
+      const response = await fetch(`${API_BASE}/auth/login`, {
+        method: "POST",
+        headers: { "Content-Type": "application/x-www-form-urlencoded" },
+        body: new URLSearchParams({ username: email, password }),
+      });
 
-    if (!response.ok) {
-      const errorData = await response.json().catch(() => ({}));
-      throw new Error(errorData.detail || "Incorrect email or password");
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.detail || "Incorrect email or password");
+      }
+
+      const data = await response.json();
+      localStorage.setItem("token", data.access_token);
+      window.dispatchEvent(new CustomEvent("backend-status", { detail: { online: true } }));
+      return data;
+    } catch (err) {
+      if (err.message && (err.message.includes("Failed to fetch") || err.message.includes("NetworkError") || err.message.includes("Load failed") || err.message.includes("Failed to execute 'fetch'"))) {
+        window.dispatchEvent(new CustomEvent("backend-status", { detail: { online: false } }));
+      }
+      throw err;
     }
-
-    const data = await response.json();
-    localStorage.setItem("token", data.access_token);
-    return data;
   },
 
   async register(email, password, fullName, organizationName) {

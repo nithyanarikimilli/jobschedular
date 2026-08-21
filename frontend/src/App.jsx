@@ -455,6 +455,7 @@ export default function App() {
           onClose={() => setToasts((prev) => prev.filter((x) => x.id !== t.id))}
         />
       ))}
+      </div>
     </div>
   );
 }
@@ -467,34 +468,53 @@ function OverviewTab({ summary, activeProject, addToast }) {
   
   useEffect(() => {
     if (!activeProject) return;
-    // Query last executions to build chart statistics
-    api.getJobs({ projectId: activeProject.id, limit: 100 })
-      .then((jobs) => {
-        // Group by hour or just format list for chart demo
-        const hourlyStats = {};
-        jobs.slice().reverse().forEach((j) => {
-          const date = new Date(j.created_at);
-          const hourLabel = `${date.getHours()}:00`;
-          if (!hourlyStats[hourLabel]) {
-            hourlyStats[hourLabel] = { time: hourLabel, Completed: 0, Failed: 0 };
-          }
-          if (j.status === "COMPLETED") hourlyStats[hourLabel].Completed += 1;
-          if (j.status === "FAILED" || j.status === "DLQ") hourlyStats[hourLabel].Failed += 1;
-        });
-        const chartList = Object.values(hourlyStats);
-        if (chartList.length === 0) {
-          // Default seed visual
-          setChartData([
-            { time: "10:00", Completed: 12, Failed: 1 },
-            { time: "11:00", Completed: 18, Failed: 0 },
-            { time: "12:00", Completed: 15, Failed: 2 },
-            { time: "13:00", Completed: 22, Failed: 1 },
-            { time: "14:00", Completed: 30, Failed: 3 },
-          ]);
-        } else {
-          setChartData(chartList);
+
+    api.getJobs({
+      projectId: activeProject.id,
+      limit: 100
+    }).then((jobs) => {
+      const hourlyStats = {};
+      const jobsList = Array.isArray(jobs) ? jobs : (jobs && Array.isArray(jobs.data) ? jobs.data : []);
+
+      jobsList.slice().reverse().forEach((j) => {
+        const date = new Date(j.created_at);
+        const hourLabel = `${date.getHours()}:00`;
+
+        if (!hourlyStats[hourLabel]) {
+          hourlyStats[hourLabel] = {
+            time: hourLabel,
+            Completed: 0,
+            completed: 0,
+            Failed: 0,
+            failed: 0
+          };
+        }
+
+        if (j.status === "COMPLETED") {
+          hourlyStats[hourLabel].Completed += 1;
+          hourlyStats[hourLabel].completed += 1;
+        }
+
+        if (j.status === "FAILED" || j.status === "DLQ") {
+          hourlyStats[hourLabel].Failed += 1;
+          hourlyStats[hourLabel].failed += 1;
         }
       });
+
+      const chartList = Object.values(hourlyStats);
+
+      if (chartList.length === 0) {
+        setChartData([
+          { time: "10:00", Completed: 12, Failed: 1 },
+          { time: "11:00", Completed: 18, Failed: 0 },
+          { time: "12:00", Completed: 15, Failed: 2 },
+          { time: "13:00", Completed: 22, Failed: 1 },
+          { time: "14:00", Completed: 30, Failed: 3 },
+        ]);
+      } else {
+        setChartData(chartList);
+      }
+    });
   }, [activeProject, summary]);
 
   const stats = [
@@ -1519,7 +1539,6 @@ function DLQTab({ addToast }) {
           )}
         </div>
       </div>
-    </div>
     </div>
   );
 }
